@@ -19,6 +19,7 @@ int TcpConnection::processRead(void* arg)
         conn->m_channel->writeEventEnable(true);
         conn->m_evLoop->addTask(conn->m_channel, ElemType::MODIFY);
 #endif
+        //组织数据发回给客户端
         bool flag = conn->m_request->parseHttpRequest(
             conn->m_readBuf, conn->m_response,
             conn->m_writeBuf, socket);
