@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     unsigned short port = atoi(argv[1]);
     unsigned short threadnum = atoi(argv[2]);
     // 切换服务器的工作路径
-    chdir("./test");
+    chdir("/mnt/c/Users/xujiawen/Desktop/高并发服务器代码实现/test");
 #else
     unsigned short port = 10000;
     chdir("./test");

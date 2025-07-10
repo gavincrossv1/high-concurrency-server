@@ -23,4 +23,3 @@ private:
     vector<WorkerThread*> m_workerThreads;
     int m_index;
 };
-

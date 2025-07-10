@@ -16,6 +16,6 @@ add_subdirectory(thread)
 link_directories(${PROJECT_SOURCE_DIR}/lib)
 link_libraries(common http reactor tcp thread pthread)
 
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+#set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 add_executable(server main.cpp)
