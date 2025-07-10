@@ -351,7 +351,7 @@ void HttpRequest::sendFile(string fileName, Buffer *sendBuf, int cfd)
     // 1. 打开文件
     int fd = open(fileName.data(), O_RDONLY);
     assert(fd > 0);
-#if 1
+#if 0
     while (1)
     {
         char buf[1024];

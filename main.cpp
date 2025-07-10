@@ -2,9 +2,11 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include "TcpServer.h"
+#include <signal.h>
 
 int main(int argc, char *argv[])
 {
+    signal(SIGPIPE, SIG_IGN);  // 忽略管道破裂信号,否则sendfile会关停程序
 #if 1
     if (argc < 3)
     {
