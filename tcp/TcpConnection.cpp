@@ -5,9 +5,9 @@
 #include "Log.h"
 #include "BufferPool.h"
 
-int TcpConnection::processRead(void* arg)
+int TcpConnection::processRead(void *arg)
 {
-    TcpConnection* conn = static_cast<TcpConnection*>(arg);
+    TcpConnection *conn = static_cast<TcpConnection *>(arg);
     // 接收数据
     int socket = conn->m_channel->getSocket();
     int count = conn->m_readBuf->socketRead(socket);
@@ -20,7 +20,7 @@ int TcpConnection::processRead(void* arg)
         conn->m_channel->writeEventEnable(true);
         conn->m_evLoop->addTask(conn->m_channel, ElemType::MODIFY);
 #endif
-        //组织数据发回给客户端
+        // 组织数据发回给客户端
         bool flag = conn->m_request->parseHttpRequest(
             conn->m_readBuf, conn->m_response,
             conn->m_writeBuf, socket);
@@ -37,7 +37,6 @@ int TcpConnection::processRead(void* arg)
         // 断开连接
         conn->m_evLoop->addTask(conn->m_channel, ElemType::DELETE);
 #endif
-
     }
 #ifndef MSG_SEND_AUTO
     // 断开连接
@@ -46,11 +45,11 @@ int TcpConnection::processRead(void* arg)
     return 0;
 }
 
-//只有在定义了MSG_SEND_AUTO后,这个函数才会被使用
-int TcpConnection::processWrite(void* arg)
+// 只有在定义了MSG_SEND_AUTO后,这个函数才会被使用
+int TcpConnection::processWrite(void *arg)
 {
     Debug("开始发送数据了(基于写事件发送)....");
-    TcpConnection* conn = static_cast<TcpConnection*>(arg);
+    TcpConnection *conn = static_cast<TcpConnection *>(arg);
     // 发送数据
     int count = conn->m_writeBuf->sendData(conn->m_channel->getSocket());
     if (count > 0)
@@ -69,9 +68,9 @@ int TcpConnection::processWrite(void* arg)
     return 0;
 }
 
-int TcpConnection::destroy(void* arg)
+int TcpConnection::destroy(void *arg)
 {
-    TcpConnection* conn = static_cast<TcpConnection*>(arg);
+    TcpConnection *conn = static_cast<TcpConnection *>(arg);
     if (conn != nullptr)
     {
         delete conn;
@@ -79,7 +78,7 @@ int TcpConnection::destroy(void* arg)
     return 0;
 }
 
-TcpConnection::TcpConnection(int fd, EventLoop* evloop)
+TcpConnection::TcpConnection(int fd, EventLoop *evloop)
 {
     m_evLoop = evloop;
     m_readBuf = BufferPool::instance().acquire();

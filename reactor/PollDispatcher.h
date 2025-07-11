@@ -9,7 +9,7 @@ using namespace std;
 class PollDispatcher : public Dispatcher
 {
 public:
-    PollDispatcher(EventLoop* evloop);
+    PollDispatcher(EventLoop *evloop);
     ~PollDispatcher();
     // 添加
     int add() override;
@@ -19,6 +19,15 @@ public:
     int modify() override;
     // 事件监测
     int dispatch(int timeout = 2) override; // 单位: s
+
+    // 获取 pollfd 数组
+    inline struct pollfd *getPollFds() const { return m_fds; }
+    // 获取最大节点数
+    inline int getMaxNode() const { return m_maxNode; }
+    // 获取最大 fd
+    inline int getMaxFd() const { return m_maxfd; }
+    // 设置最大 fd
+    inline void setMaxFd(int maxfd) { m_maxfd = maxfd; }
 
 private:
     int m_maxfd;

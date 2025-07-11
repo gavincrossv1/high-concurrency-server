@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include "EpollDispatcher.h"
 
-EpollDispatcher::EpollDispatcher(EventLoop* evloop) : Dispatcher(evloop)
+EpollDispatcher::EpollDispatcher(EventLoop *evloop) : Dispatcher(evloop)
 {
     m_epfd = epoll_create(10);
     if (m_epfd == -1)
@@ -20,7 +20,7 @@ EpollDispatcher::EpollDispatcher(EventLoop* evloop) : Dispatcher(evloop)
 EpollDispatcher::~EpollDispatcher()
 {
     close(m_epfd);
-    delete[]m_events;
+    delete[] m_events;
 }
 
 int EpollDispatcher::add()
@@ -43,7 +43,7 @@ int EpollDispatcher::remove()
         exit(0);
     }
     // 通过 channel 释放对应的 TcpConnection 资源
-    m_channel->destroyCallback(const_cast<void*>(m_channel->getArg()));
+    m_channel->destroyCallback(const_cast<void *>(m_channel->getArg()));
 
     return ret;
 }

@@ -173,7 +173,7 @@ bool HttpRequest::parseHttpRequest(Buffer *readBuf, HttpResponse *response, Buff
 
 bool HttpRequest::processHttpRequest(HttpResponse *response)
 {
-    if (strcasecmp(m_method.data(), "get") != 0 && strcasecmp(m_method.data(), "head") != 0) 
+    if (strcasecmp(m_method.data(), "get") != 0 && strcasecmp(m_method.data(), "head") != 0)
     {
         return false;
     }
@@ -414,7 +414,7 @@ void HttpRequest::sendFile(string fileName, Buffer *sendBuf, int cfd)
     close(fd);
 }
 
-void HttpRequest::sendNoData(string fileName, Buffer* sendBuf, int cfd)
+void HttpRequest::sendNoData(string fileName, Buffer *sendBuf, int cfd)
 {
     // 对于 HEAD 请求，我们只需要发送头部，不需要发送实际文件内容
     // 这个函数可以什么都不做，或者只是记录日志

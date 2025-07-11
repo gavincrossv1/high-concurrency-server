@@ -21,19 +21,42 @@ class HttpResponse
 public:
     HttpResponse();
     ~HttpResponse();
-    function<void(const string, struct Buffer*, int)> sendDataFunc;
+    function<void(const string, struct Buffer *, int)> sendDataFunc;
     // 添加响应头
     void addHeader(const string key, const string value);
+    // 获取响应头
+    string getHeader(const string key) const
+    {
+        auto it = m_headers.find(key);
+        if (it != m_headers.end())
+            return it->second;
+        return string();
+    }
+    // 获取所有响应头
+    const map<string, string> &getHeaders() const { return m_headers; }
     // 组织http响应数据
-    void prepareMsg(Buffer* sendBuf, int socket);
+    void prepareMsg(Buffer *sendBuf, int socket);
     inline void setFileName(string name)
     {
         m_fileName = name;
+    }
+    inline string getFileName() const
+    {
+        return m_fileName;
     }
     inline void setStatusCode(StatusCode code)
     {
         m_statusCode = code;
     }
+    inline StatusCode getStatusCode() const
+    {
+        return m_statusCode;
+    }
+    // 清空响应头
+    void clearHeaders() { m_headers.clear(); }
+    // 设置所有响应头
+    void setHeaders(const map<string, string> &headers) { m_headers = headers; }
+
 private:
     // 状态行: 状态码, 状态描述
     StatusCode m_statusCode;

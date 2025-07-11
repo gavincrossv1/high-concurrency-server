@@ -8,12 +8,17 @@
 using namespace std;
 
 // 处理该节点中的channel的方式
-enum class ElemType:char{ADD, DELETE, MODIFY};
+enum class ElemType : char
+{
+    ADD,
+    DELETE,
+    MODIFY
+};
 // 定义任务队列的节点
 struct ChannelElement
 {
-    ElemType type;   // 如何处理该节点中的channel
-    Channel* channel;
+    ElemType type; // 如何处理该节点中的channel
+    Channel *channel;
 };
 class Dispatcher;
 
@@ -28,15 +33,15 @@ public:
     // 处理别激活的文件fd
     int eventActive(int fd, int event);
     // 添加任务到任务队列
-    int addTask(struct Channel* channel, ElemType type);
+    int addTask(struct Channel *channel, ElemType type);
     // 处理任务队列中的任务
     int processTaskQ();
     // 处理dispatcher中的节点
-    int add(Channel* channel);
-    int remove(Channel* channel);
-    int modify(Channel* channel);
+    int add(Channel *channel);
+    int remove(Channel *channel);
+    int modify(Channel *channel);
     // 释放channel
-    int freeChannel(Channel* channel);
+    int freeChannel(Channel *channel);
     int readMessage();
     // 返回线程ID
     inline thread::id getThreadID()
@@ -47,7 +52,20 @@ public:
     {
         return m_threadName;
     }
-    static int readLocalMessage(void* arg);
+    static int readLocalMessage(void *arg);
+
+    // 获取任务队列
+    inline queue<ChannelElement *> &getTaskQueue() { return m_taskQ; }
+    // 获取 channel map
+    inline map<int, Channel *> &getChannelMap() { return m_channelMap; }
+    // 获取 socket pair
+    inline int *getSocketPair() { return m_socketPair; }
+    // 获取/设置是否退出
+    inline bool isQuit() const { return m_isQuit; }
+    inline void setQuit(bool quit) { m_isQuit = quit; }
+    // 获取 dispatcher
+    inline Dispatcher *getDispatcher() const { return m_dispatcher; }
+    inline void setDispatcher(Dispatcher *dispatcher) { m_dispatcher = dispatcher; }
 
 private:
     void taskWakeup();
@@ -55,16 +73,14 @@ private:
 private:
     bool m_isQuit;
     // 该指针指向子类的实例 epoll, poll, select
-    Dispatcher* m_dispatcher;
+    Dispatcher *m_dispatcher;
     // 任务队列
-    queue<ChannelElement*> m_taskQ;
+    queue<ChannelElement *> m_taskQ;
     // map
-    map<int, Channel*> m_channelMap;
+    map<int, Channel *> m_channelMap;
     // 线程id, name, mutex
     thread::id m_threadID;
     string m_threadName;
     mutex m_mutex;
-    int m_socketPair[2];  // 存储本地通信的fd 通过socketpair 初始化
+    int m_socketPair[2]; // 存储本地通信的fd 通过socketpair 初始化
 };
-
-

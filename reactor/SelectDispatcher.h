@@ -9,7 +9,7 @@ using namespace std;
 class SelectDispatcher : public Dispatcher
 {
 public:
-    SelectDispatcher(EventLoop* evloop);
+    SelectDispatcher(EventLoop *evloop);
     ~SelectDispatcher();
     // 添加
     int add() override;
@@ -19,6 +19,19 @@ public:
     int modify() override;
     // 事件监测
     int dispatch(int timeout = 2) override; // 单位: s
+
+    // 获取读集合
+    inline fd_set getReadSet() const { return m_readSet; }
+    // 获取写集合
+    inline fd_set getWriteSet() const { return m_writeSet; }
+    // 获取最大尺寸
+    inline int getMaxSize() const { return m_maxSize; }
+    // 清空所有 fd_set
+    void resetFdSets()
+    {
+        FD_ZERO(&m_readSet);
+        FD_ZERO(&m_writeSet);
+    }
 
 private:
     void setFdSet();

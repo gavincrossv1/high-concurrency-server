@@ -21,16 +21,16 @@ public:
         return m_writePos - m_readPos;
     }
     // 写内存 1. 直接写 2. 接收套接字数据
-    int appendString(const char* data, int size);
-    int appendString(const char* data);
+    int appendString(const char *data, int size);
+    int appendString(const char *data);
     int appendString(const string data);
     int socketRead(int fd);
     // 根据\r\n取出一行, 找到其在数据块中的位置, 返回该位置
-    char* findCRLF();
+    char *findCRLF();
     // 发送数据
-    int sendData(int socket);    // 指向内存的指针
+    int sendData(int socket); // 指向内存的指针
     // 得到读数据的起始位置
-    inline char* data()
+    inline char *data()
     {
         return m_data + m_readPos;
     }
@@ -39,10 +39,20 @@ public:
         m_readPos += count;
         return m_readPos;
     }
+
+    // 新增 get/set 方法
+    int getCapacity() const { return m_capacity; }
+    void setCapacity(int cap) { m_capacity = cap; }
+    int getReadPos() const { return m_readPos; }
+    void setReadPos(int pos) { m_readPos = pos; }
+    int getWritePos() const { return m_writePos; }
+    void setWritePos(int pos) { m_writePos = pos; }
+    char *getRawData() { return m_data; }
+    void setRawData(char *data) { m_data = data; }
+
 private:
-    char* m_data;
+    char *m_data;
     int m_capacity;
     int m_readPos = 0;
     int m_writePos = 0;
 };
-
