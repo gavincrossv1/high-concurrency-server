@@ -165,6 +165,8 @@ bool HttpRequest::parseHttpRequest(Buffer *readBuf, HttpResponse *response, Buff
             processHttpRequest(response);
             // 2. 组织响应数据并发送给客户端
             response->prepareMsg(sendBuf, socket);
+            bool keepAlive = strcasecmp(getHeader("Connection").data(), "keep-alive") == 0;
+            response->setKeepAlive(keepAlive);
         }
     }
     m_curState = PrecessState::ParseReqLine; // 状态还原, 保证还能继续处理第二条及以后的请求

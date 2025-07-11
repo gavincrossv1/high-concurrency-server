@@ -34,6 +34,13 @@ public:
     {
         m_statusCode = code;
     }
+    void setKeepAlive(bool keepAlive) {
+        if (keepAlive) {
+            addHeader("Connection", "keep-alive");
+        } else {
+            addHeader("Connection", "close");
+        }
+    }
 private:
     // 状态行: 状态码, 状态描述
     StatusCode m_statusCode;
