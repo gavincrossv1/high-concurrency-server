@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "Log.h"
+#include "BufferPool.h"
 
 int TcpConnection::processRead(void* arg)
 {
@@ -81,8 +82,8 @@ int TcpConnection::destroy(void* arg)
 TcpConnection::TcpConnection(int fd, EventLoop* evloop)
 {
     m_evLoop = evloop;
-    m_readBuf = new Buffer(10240);
-    m_writeBuf = new Buffer(10240);
+    m_readBuf = BufferPool::instance().acquire();
+    m_writeBuf = BufferPool::instance().acquire();
     // http
     m_request = new HttpRequest;
     m_response = new HttpResponse;
@@ -96,8 +97,8 @@ TcpConnection::~TcpConnection()
     if (m_readBuf && m_readBuf->readableSize() == 0 &&
         m_writeBuf && m_writeBuf->readableSize() == 0)
     {
-        delete m_readBuf;
-        delete m_writeBuf;
+        BufferPool::instance().release(m_readBuf);
+        BufferPool::instance().release(m_writeBuf);
         delete m_request;
         delete m_response;
         m_evLoop->freeChannel(m_channel);

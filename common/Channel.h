@@ -1,6 +1,6 @@
 #pragma once
 #include <functional>
-
+using namespace std;
 // 定义函数指针
 // typedef int(*handleFunc)(void* arg);
 // using handleFunc = int(*)(void*);
@@ -18,7 +18,7 @@ enum class FDEvent
 class Channel
 {
 public:
-    using handleFunc = std::function<int(void*)>;
+    using handleFunc = function<int(void*)>;
     Channel(int fd, FDEvent events, handleFunc readFunc, handleFunc writeFunc, handleFunc destroyFunc, void* arg);
     // 回调函数
     handleFunc readCallback;
