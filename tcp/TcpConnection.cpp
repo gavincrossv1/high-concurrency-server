@@ -45,6 +45,7 @@ int TcpConnection::processRead(void* arg)
     return 0;
 }
 
+//只有在定义了MSG_SEND_AUTO后,这个函数才会被使用
 int TcpConnection::processWrite(void* arg)
 {
     Debug("开始发送数据了(基于写事件发送)....");

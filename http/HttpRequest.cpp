@@ -12,6 +12,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <sys/sendfile.h>
+#include "Log.h"
 
 char *HttpRequest::splitRequestLine(const char *start, const char *end, const char *sub, function<void(string)> callback)
 {
@@ -172,9 +173,9 @@ bool HttpRequest::parseHttpRequest(Buffer *readBuf, HttpResponse *response, Buff
 
 bool HttpRequest::processHttpRequest(HttpResponse *response)
 {
-    if (strcasecmp(m_method.data(), "get") != 0)
+    if (strcasecmp(m_method.data(), "get") != 0 && strcasecmp(m_method.data(), "head") != 0) 
     {
-        return -1;
+        return false;
     }
     m_url = decodeMsg(m_url);
     // 处理客户端请求的静态资源(目录或者文件)
@@ -223,7 +224,14 @@ bool HttpRequest::processHttpRequest(HttpResponse *response)
         // 响应头
         response->addHeader("Content-type", getFileType(file));
         response->addHeader("Content-length", to_string(st.st_size));
-        response->sendDataFunc = sendFile;
+        if (strcasecmp(m_method.data(), "head") == 0)
+        {
+            response->sendDataFunc = sendNoData; // 需要实现这个函数
+        }
+        else
+        {
+            response->sendDataFunc = sendFile;
+        }
     }
 
     return false;
@@ -404,4 +412,11 @@ void HttpRequest::sendFile(string fileName, Buffer *sendBuf, int cfd)
     }
 #endif
     close(fd);
+}
+
+void HttpRequest::sendNoData(string fileName, Buffer* sendBuf, int cfd)
+{
+    // 对于 HEAD 请求，我们只需要发送头部，不需要发送实际文件内容
+    // 这个函数可以什么都不做，或者只是记录日志
+    Debug("HEAD request - skipping data send for file: %s", fileName.data());
 }

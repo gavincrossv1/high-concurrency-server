@@ -38,6 +38,7 @@ public:
     const string getFileType(const string name);
     static void sendDir(string dirName, Buffer* sendBuf, int cfd);
     static void sendFile(string dirName, Buffer* sendBuf, int cfd);
+    static void sendNoData(string fileName, struct Buffer* sendBuf, int cfd);//head头专用
     inline void setMethod(string method)
     {
         m_method = method;
