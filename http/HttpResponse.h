@@ -49,4 +49,3 @@ private:
         {404, "NotFound"},
     };
 };
-
