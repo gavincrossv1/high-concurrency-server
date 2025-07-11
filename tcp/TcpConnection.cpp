@@ -28,13 +28,6 @@ int TcpConnection::processRead(void* arg)
             // 解析失败, 回复一个简单的html
             string errMsg = "Http/1.1 400 Bad Request\r\n\r\n";
             conn->m_writeBuf->appendString(errMsg);
-            conn->m_keepAlive = false; // 解析失败，关闭连接
-        }
-        else
-        {
-            // 检查是否启用持久连接
-            string connectionHeader = conn->m_request->getHeader("Connection");
-            conn->m_keepAlive = (connectionHeader == "keep-alive");
         }
     }
     else
@@ -49,10 +42,6 @@ int TcpConnection::processRead(void* arg)
     // 断开连接
     conn->m_evLoop->addTask(conn->m_channel, ElemType::DELETE);
 #endif
-    if (!conn->m_keepAlive)
-    {
-        conn->m_evLoop->addTask(conn->m_channel, ElemType::DELETE);
-    }
     return 0;
 }
 
@@ -73,10 +62,7 @@ int TcpConnection::processWrite(void* arg)
             // 2. 修改dispatcher检测的集合 -- 添加任务节点
             conn->m_evLoop->addTask(conn->m_channel, ElemType::MODIFY);
             // 3. 删除这个节点
-            if (!conn->m_keepAlive)
-            {
-                conn->m_evLoop->addTask(conn->m_channel, ElemType::DELETE);
-            }
+            conn->m_evLoop->addTask(conn->m_channel, ElemType::DELETE);
         }
     }
     return 0;
@@ -102,7 +88,6 @@ TcpConnection::TcpConnection(int fd, EventLoop* evloop)
     m_response = new HttpResponse;
     m_name = "Connection-" + to_string(fd);
     m_channel = new Channel(fd, FDEvent::ReadEvent, processRead, processWrite, destroy, this);
-    m_keepAlive = false; // 初始化为非持久连接
     evloop->addTask(m_channel, ElemType::ADD);
 }
 

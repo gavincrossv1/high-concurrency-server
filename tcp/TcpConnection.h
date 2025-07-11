@@ -25,5 +25,4 @@ private:
     // http 协议
     HttpRequest* m_request;
     HttpResponse* m_response;
-    bool m_keepAlive; // 是否启用持久连接
 };
