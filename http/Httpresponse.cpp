@@ -47,3 +47,5 @@ void HttpResponse::prepareMsg(Buffer* sendBuf, int socket)
     // 回复的数据
     sendDataFunc(m_fileName, sendBuf, socket);
 }
+
+
