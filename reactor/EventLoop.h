@@ -53,20 +53,6 @@ public:
         return m_threadName;
     }
     static int readLocalMessage(void *arg);
-
-    // 获取任务队列
-    inline queue<ChannelElement *> &getTaskQueue() { return m_taskQ; }
-    // 获取 channel map
-    inline map<int, Channel *> &getChannelMap() { return m_channelMap; }
-    // 获取 socket pair
-    inline int *getSocketPair() { return m_socketPair; }
-    // 获取/设置是否退出
-    inline bool isQuit() const { return m_isQuit; }
-    inline void setQuit(bool quit) { m_isQuit = quit; }
-    // 获取 dispatcher
-    inline Dispatcher *getDispatcher() const { return m_dispatcher; }
-    inline void setDispatcher(Dispatcher *dispatcher) { m_dispatcher = dispatcher; }
-
 private:
     void taskWakeup();
 
@@ -77,7 +63,7 @@ private:
     // 任务队列
     queue<ChannelElement *> m_taskQ;
     // map
-    map<int, Channel *> m_channelMap;
+    map<int, Channel *> m_channelMap;//文件描述符到对应channel的映射
     // 线程id, name, mutex
     thread::id m_threadID;
     string m_threadName;

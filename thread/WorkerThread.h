@@ -17,13 +17,6 @@ public:
     {
         return m_evLoop;
     }
-    // 新增 get/set 方法
-    inline std::thread *getThread() { return m_thread; }
-    inline std::thread::id getThreadID() { return m_threadID; }
-    inline std::string getName() { return m_name; }
-    inline void setName(const std::string &name) { m_name = name; }
-    inline void setThreadID(const std::thread::id &id) { m_threadID = id; }
-    inline void setEventLoop(EventLoop *loop) { m_evLoop = loop; }
 
 private:
     void running();

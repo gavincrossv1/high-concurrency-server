@@ -41,17 +41,6 @@ public:
     {
         return m_arg;
     }
-    // 新增 get/set 方法
-    void setFd(int fd) { m_fd = fd; }
-    void setEvents(int events) { m_events = events; }
-    void setArg(void *arg) { m_arg = arg; }
-    void setReadCallback(handleFunc func) { readCallback = func; }
-    void setWriteCallback(handleFunc func) { writeCallback = func; }
-    void setDestroyCallback(handleFunc func) { destroyCallback = func; }
-    handleFunc getReadCallback() const { return readCallback; }
-    handleFunc getWriteCallback() const { return writeCallback; }
-    handleFunc getDestroyCallback() const { return destroyCallback; }
-
 private:
     // 文件描述符
     int m_fd;

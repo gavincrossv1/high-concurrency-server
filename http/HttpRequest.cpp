@@ -75,7 +75,7 @@ string HttpRequest::getHeader(const string key)
     return item->second;
 }
 
-bool HttpRequest::parseRequestLine(Buffer *readBuf)
+bool HttpRequest::parseRequestLine(Buffer *readBuf)//解析请求行
 {
     // 读出请求行, 保存字符串结束地址
     char *end = readBuf->findCRLF();
@@ -101,7 +101,7 @@ bool HttpRequest::parseRequestLine(Buffer *readBuf)
     return false;
 }
 
-bool HttpRequest::parseRequestHeader(Buffer *readBuf)
+bool HttpRequest::parseRequestHeader(Buffer *readBuf)//解析请求头
 {
     char *end = readBuf->findCRLF();
     if (end != nullptr)

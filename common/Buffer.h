@@ -40,16 +40,6 @@ public:
         return m_readPos;
     }
 
-    // 新增 get/set 方法
-    int getCapacity() const { return m_capacity; }
-    void setCapacity(int cap) { m_capacity = cap; }
-    int getReadPos() const { return m_readPos; }
-    void setReadPos(int pos) { m_readPos = pos; }
-    int getWritePos() const { return m_writePos; }
-    void setWritePos(int pos) { m_writePos = pos; }
-    char *getRawData() { return m_data; }
-    void setRawData(char *data) { m_data = data; }
-
 private:
     char *m_data;
     int m_capacity;

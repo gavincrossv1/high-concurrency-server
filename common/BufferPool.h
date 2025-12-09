@@ -12,12 +12,6 @@ public:
     Buffer *acquire();
     void release(Buffer *buffer);
 
-    // 新增 get/set 方法
-    int getBufferSize() const { return m_bufferSize; }
-    void setBufferSize(int size) { m_bufferSize = size; }
-    int getPoolSize() const { return m_pool.size(); }
-    vector<Buffer *> &getPool() { return m_pool; }
-
 private:
     BufferPool(int bufferSize, int poolSize);
     ~BufferPool();

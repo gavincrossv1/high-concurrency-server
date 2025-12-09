@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     int threadnum = atoi(argv[2]);
     int buffernum = atoi(argv[3]);
     // 切换服务器的工作路径
-    chdir("/mnt/c/Users/xujiawen/Desktop/高并发服务器代码实现/test");
+    chdir("../test");
 #else
     unsigned short port = 10000;
     chdir("./test");
