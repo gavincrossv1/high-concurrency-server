@@ -13,6 +13,13 @@ enum class PrecessState : char
     ParseReqBody,
     ParseReqDone
 };
+
+enum class HttpParseResult : char
+{
+    Incomplete,
+    KeepAlive,
+    Close
+};
 // 定义http请求结构体
 class HttpRequest
 {
@@ -34,7 +41,8 @@ public:
     // 解析请求头
     bool parseRequestHeader(Buffer *readBuf);
     // 解析http请求协议
-    bool parseHttpRequest(Buffer *readBuf, HttpResponse *response, Buffer *sendBuf, int socket);
+    HttpParseResult parseHttpRequest(Buffer *readBuf, HttpResponse *response,
+                                     Buffer *sendBuf, int socket, bool keepAliveEnabled);
     // 处理http请求协议
     bool processHttpRequest(HttpResponse *response);
     // 解码字符串
@@ -67,6 +75,7 @@ public:
     {
         return m_version;
     }
+    bool shouldKeepAlive() const;
     // 获取处理状态
     inline PrecessState getState()
     {

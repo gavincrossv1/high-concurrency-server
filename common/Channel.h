@@ -24,6 +24,7 @@ public:
     handleFunc readCallback;
     handleFunc writeCallback;
     handleFunc destroyCallback;
+    handleFunc timeoutCallback;
     // 修改fd的写事件(检测 or 不检测)
     void writeEventEnable(bool flag);
     // 判断是否需要检测文件描述符的写事件

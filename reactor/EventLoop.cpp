@@ -58,6 +58,38 @@ int EventLoop::run()
     {
         m_dispatcher->dispatch(); // 超时时长 2s
         processTaskQ();
+        processTimeouts();
+    }
+    return 0;
+}
+
+int EventLoop::processTimeouts()
+{
+    // 回调可能删除 Channel，先复制指针，避免遍历期间修改 map。
+    vector<Channel *> channels;
+    vector<Channel *> expiredChannels;
+    for (const auto &item : m_channelMap)
+    {
+        if (item.second->timeoutCallback)
+        {
+            channels.push_back(item.second);
+        }
+    }
+    for (Channel *channel : channels)
+    {
+        // 前一个回调可能已触发删除任务，再确认 Channel 仍然存在。
+        auto item = m_channelMap.find(channel->getSocket());
+        if (item != m_channelMap.end() && item->second == channel)
+        {
+            if (channel->timeoutCallback(const_cast<void *>(channel->getArg())) != 0)
+            {
+                expiredChannels.push_back(channel);
+            }
+        }
+    }
+    for (Channel *channel : expiredChannels)
+    {
+        addTask(channel, ElemType::DELETE);
     }
     return 0;
 }

@@ -5,7 +5,7 @@
 class TcpServer
 {
 public:
-    TcpServer(unsigned short port, int threadNum);
+    TcpServer(unsigned short port, int threadNum, bool keepAlive, int keepAliveTimeout);
     // 初始化监听
     void setListen();
     // 启动服务器
@@ -18,4 +18,6 @@ private:
     ThreadPool *m_threadPool;
     int m_lfd;
     unsigned short m_port;
+    bool m_keepAlive;
+    int m_keepAliveTimeout;
 };

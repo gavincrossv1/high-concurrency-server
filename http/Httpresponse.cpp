@@ -6,6 +6,11 @@
 
 HttpResponse::HttpResponse()
 {
+    reset();
+}
+
+void HttpResponse::reset()
+{
     m_statusCode = StatusCode::Unknown;
     m_headers.clear();
     m_fileName = string();

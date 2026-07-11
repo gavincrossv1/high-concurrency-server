@@ -5,6 +5,7 @@
 #include <queue>
 #include <map>
 #include <mutex>
+#include <vector>
 using namespace std;
 
 // 处理该节点中的channel的方式
@@ -36,6 +37,7 @@ public:
     int addTask(struct Channel *channel, ElemType type);
     // 处理任务队列中的任务
     int processTaskQ();
+    int processTimeouts();
     // 处理dispatcher中的节点
     int add(Channel *channel);
     int remove(Channel *channel);

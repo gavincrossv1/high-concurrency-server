@@ -47,7 +47,7 @@ make
 进入 build 目录后，运行服务器：
 
 ```sh
-./server <port> <threadnum> <buffernum>
+./server <port> <threadnum> <buffernum> <keepalive> [keepalive_timeout]
 ```
 
 参数说明：
@@ -55,12 +55,33 @@ make
 - `port`：监听端口号
 - `threadnum`：工作线程数量
 - `buffernum`：缓冲池大小
+- `keepalive`：是否启用 HTTP 持久连接，`1` 启用，`0` 禁用
+- `keepalive_timeout`：可选，长连接空闲超时秒数，默认 `60`
 
 例如：
 
 ```sh
-./server 8080 4 100
+./server 8080 4 100 1 60
 ```
+
+启用持久连接后，HTTP/1.1 请求默认复用 TCP 连接；客户端发送
+`Connection: close` 时，服务器会在当前响应发送完成后关闭连接。
+连接在指定时间内没有收到任何数据时，服务器也会主动关闭连接。超时检查
+复用 Reactor 的事件循环，不会额外创建检测线程，检查精度约为 2 秒。
+
+具体行为如下：
+
+服务端参数	客户端请求	处理结果
+0	HTTP/1.1 默认请求	响应后关闭
+0	HTTP/1.1 + Connection: keep-alive	响应后关闭
+0	HTTP/1.0 + Connection: keep-alive	响应后关闭
+1	HTTP/1.1，无 Connection	保持连接
+1	HTTP/1.1 + Connection: keep-alive	保持连接
+1	HTTP/1.1 + Connection: close	响应后关闭
+1	HTTP/1.0，无 Connection	响应后关闭
+1	HTTP/1.0 + Connection: keep-alive	保持连接
+1	无法确定响应体长度	响应后关闭
+
 
 ## 代码说明
 

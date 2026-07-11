@@ -53,6 +53,7 @@ public:
         return m_statusCode;
     }
     // 清空响应头
+    void reset();
     void clearHeaders() { m_headers.clear(); }
     // 设置所有响应头
     void setHeaders(const map<string, string> &headers) { m_headers = headers; }

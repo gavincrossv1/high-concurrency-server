@@ -13,13 +13,15 @@ int TcpServer::acceptConnection(void *arg)
     // 从线程池中取出一个子线程的反应堆实例, 去处理这个cfd
     EventLoop *evLoop = server->m_threadPool->takeWorkerEventLoop();
     // 将cfd放到 TcpConnection中处理
-    new TcpConnection(cfd, evLoop);
+    new TcpConnection(cfd, evLoop, server->m_keepAlive, server->m_keepAliveTimeout);
     return 0;
 }
 
-TcpServer::TcpServer(unsigned short port, int threadNum)
+TcpServer::TcpServer(unsigned short port, int threadNum, bool keepAlive, int keepAliveTimeout)
 {
     m_port = port;
+    m_keepAlive = keepAlive;
+    m_keepAliveTimeout = keepAliveTimeout;
     m_mainLoop = new EventLoop;
     m_threadNum = threadNum;
     m_threadPool = new ThreadPool(m_mainLoop, threadNum);

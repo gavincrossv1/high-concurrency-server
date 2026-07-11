@@ -39,6 +39,11 @@ public:
         m_readPos += count;
         return m_readPos;
     }
+    inline void reset()
+    {
+        m_readPos = 0;
+        m_writePos = 0;
+    }
 
 private:
     char *m_data;

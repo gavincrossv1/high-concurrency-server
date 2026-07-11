@@ -12,36 +12,56 @@ int TcpConnection::processRead(void *arg)
     int socket = conn->m_channel->getSocket();
     int count = conn->m_readBuf->socketRead(socket);
 
-    Debug("接收到的http请求数据: %s", conn->m_readBuf->data());
+    Debug("接收到的http请求数据: %.*s", conn->m_readBuf->readableSize(),
+          conn->m_readBuf->data());
     if (count > 0)
     {
+        conn->m_lastActiveTime = chrono::steady_clock::now();
         // 接收到了 http 请求, 解析http请求
 #ifdef MSG_SEND_AUTO
         conn->m_channel->writeEventEnable(true);
         conn->m_evLoop->addTask(conn->m_channel, ElemType::MODIFY);
 #endif
-        // 组织数据发回给客户端
-        bool flag = conn->m_request->parseHttpRequest(
-            conn->m_readBuf, conn->m_response,
-            conn->m_writeBuf, socket);
-        if (!flag)
+        // 一个读缓冲中可能包含多个完整请求，逐个处理直到数据不足或需要关闭。
+        while (conn->m_readBuf->readableSize() > 0)
         {
-            // 解析失败, 回复一个简单的html
-            string errMsg = "Http/1.1 400 Bad Request\r\n\r\n";
-            conn->m_writeBuf->appendString(errMsg);
+            HttpParseResult result = conn->m_request->parseHttpRequest(
+                conn->m_readBuf, conn->m_response,
+                conn->m_writeBuf, socket, conn->m_keepAlive);
+            if (result == HttpParseResult::Incomplete)
+            {
+                break;
+            }
+            if (result == HttpParseResult::Close)
+            {
+#ifdef MSG_SEND_AUTO
+                conn->m_closeAfterWrite = true;
+#else
+                conn->m_evLoop->addTask(conn->m_channel, ElemType::DELETE);
+#endif
+                return 0;
+            }
         }
     }
     else
     {
-#ifdef MSG_SEND_AUTO
         // 断开连接
         conn->m_evLoop->addTask(conn->m_channel, ElemType::DELETE);
-#endif
     }
-#ifndef MSG_SEND_AUTO
-    // 断开连接
-    conn->m_evLoop->addTask(conn->m_channel, ElemType::DELETE);
-#endif
+    return 0;
+}
+
+int TcpConnection::processTimeout(void *arg)
+{
+    TcpConnection *conn = static_cast<TcpConnection *>(arg);
+    auto idleSeconds = chrono::duration_cast<chrono::seconds>(
+        chrono::steady_clock::now() - conn->m_lastActiveTime).count();
+    if (idleSeconds >= conn->m_keepAliveTimeout)
+    {
+        Debug("长连接空闲超时: %s, idle: %ld 秒",
+              conn->m_name.data(), static_cast<long>(idleSeconds));
+        return 1;
+    }
     return 0;
 }
 
@@ -61,8 +81,10 @@ int TcpConnection::processWrite(void *arg)
             conn->m_channel->writeEventEnable(false);
             // 2. 修改dispatcher检测的集合 -- 添加任务节点
             conn->m_evLoop->addTask(conn->m_channel, ElemType::MODIFY);
-            // 3. 删除这个节点
-            conn->m_evLoop->addTask(conn->m_channel, ElemType::DELETE);
+            if (conn->m_closeAfterWrite)
+            {
+                conn->m_evLoop->addTask(conn->m_channel, ElemType::DELETE);
+            }
         }
     }
     return 0;
@@ -78,9 +100,13 @@ int TcpConnection::destroy(void *arg)
     return 0;
 }
 
-TcpConnection::TcpConnection(int fd, EventLoop *evloop)
+TcpConnection::TcpConnection(int fd, EventLoop *evloop, bool keepAlive, int keepAliveTimeout)
 {
     m_evLoop = evloop;
+    m_keepAlive = keepAlive;
+    m_keepAliveTimeout = keepAliveTimeout;
+    m_lastActiveTime = chrono::steady_clock::now();
+    m_closeAfterWrite = false;
     m_readBuf = BufferPool::instance().acquire();
     m_writeBuf = BufferPool::instance().acquire();
     // http
@@ -88,19 +114,19 @@ TcpConnection::TcpConnection(int fd, EventLoop *evloop)
     m_response = new HttpResponse;
     m_name = "Connection-" + to_string(fd);
     m_channel = new Channel(fd, FDEvent::ReadEvent, processRead, processWrite, destroy, this);
+    if (m_keepAlive)
+    {
+        m_channel->timeoutCallback = processTimeout;
+    }
     evloop->addTask(m_channel, ElemType::ADD);
 }
 
 TcpConnection::~TcpConnection()
 {
-    if (m_readBuf && m_readBuf->readableSize() == 0 &&
-        m_writeBuf && m_writeBuf->readableSize() == 0)
-    {
-        BufferPool::instance().release(m_readBuf);
-        BufferPool::instance().release(m_writeBuf);
-        delete m_request;
-        delete m_response;
-        m_evLoop->freeChannel(m_channel);
-    }
+    BufferPool::instance().release(m_readBuf);
+    BufferPool::instance().release(m_writeBuf);
+    delete m_request;
+    delete m_response;
+    m_evLoop->freeChannel(m_channel);
     Debug("连接断开, 释放资源, gameover, connName: %s", m_name.data());
 }

@@ -13,6 +13,7 @@
 #include <ctype.h>
 #include <sys/sendfile.h>
 #include "Log.h"
+#include <algorithm>
 
 char *HttpRequest::splitRequestLine(const char *start, const char *end, const char *sub, function<void(string)> callback)
 {
@@ -67,18 +68,48 @@ void HttpRequest::addHeader(const string key, const string value)
 
 string HttpRequest::getHeader(const string key)
 {
-    auto item = m_reqHeaders.find(key);
-    if (item == m_reqHeaders.end())
+    for (const auto &item : m_reqHeaders)
     {
-        return string();
+        if (strcasecmp(item.first.c_str(), key.c_str()) == 0)
+        {
+            return item.second;
+        }
     }
-    return item->second;
+    return string();
+}
+
+bool HttpRequest::shouldKeepAlive() const
+{
+    string connection;
+    for (const auto &item : m_reqHeaders)
+    {
+        if (strcasecmp(item.first.c_str(), "Connection") == 0)
+        {
+            connection = item.second;
+            break;
+        }
+    }
+    transform(connection.begin(), connection.end(), connection.begin(), ::tolower);
+
+    if (strcasecmp(m_version.c_str(), "HTTP/1.1") == 0)
+    {
+        return connection != "close";
+    }
+    if (strcasecmp(m_version.c_str(), "HTTP/1.0") == 0)
+    {
+        return connection == "keep-alive";
+    }
+    return false;
 }
 
 bool HttpRequest::parseRequestLine(Buffer *readBuf)//解析请求行
 {
     // 读出请求行, 保存字符串结束地址
     char *end = readBuf->findCRLF();
+    if (end == nullptr)
+    {
+        return false;
+    }
     // 保存字符串起始地址
     char *start = readBuf->data();
     // 请求行总长度
@@ -136,7 +167,8 @@ bool HttpRequest::parseRequestHeader(Buffer *readBuf)//解析请求头
     return false;
 }
 
-bool HttpRequest::parseHttpRequest(Buffer *readBuf, HttpResponse *response, Buffer *sendBuf, int socket)
+HttpParseResult HttpRequest::parseHttpRequest(Buffer *readBuf, HttpResponse *response,
+                                              Buffer *sendBuf, int socket, bool keepAliveEnabled)
 {
     bool flag = true;
     while (m_curState != PrecessState::ParseReqDone)
@@ -156,19 +188,28 @@ bool HttpRequest::parseHttpRequest(Buffer *readBuf, HttpResponse *response, Buff
         }
         if (!flag)
         {
-            return flag;
+            return HttpParseResult::Incomplete;
         }
         // 判断是否解析完毕了, 如果完毕了, 需要准备回复的数据
         if (m_curState == PrecessState::ParseReqDone)
         {
+            bool keepAlive = keepAliveEnabled && shouldKeepAlive();
             // 1. 根据解析出的原始数据, 对客户端的请求做出处理
             processHttpRequest(response);
+            // 目录响应没有 Content-Length，只能通过关闭连接标识响应结束。
+            if (response->getHeader("Content-length").empty())
+            {
+                keepAlive = false;
+            }
+            response->addHeader("Connection", keepAlive ? "keep-alive" : "close");
             // 2. 组织响应数据并发送给客户端
             response->prepareMsg(sendBuf, socket);
+            reset();
+            response->reset();
+            return keepAlive ? HttpParseResult::KeepAlive : HttpParseResult::Close;
         }
     }
-    m_curState = PrecessState::ParseReqLine; // 状态还原, 保证还能继续处理第二条及以后的请求
-    return flag;
+    return HttpParseResult::Incomplete;
 }
 
 bool HttpRequest::processHttpRequest(HttpResponse *response)
@@ -200,6 +241,11 @@ bool HttpRequest::processHttpRequest(HttpResponse *response)
         response->setStatusCode(StatusCode::NotFound);
         // 响应头
         response->addHeader("Content-type", getFileType(".html"));
+        struct stat notFoundStat;
+        if (stat("404.html", &notFoundStat) == 0)
+        {
+            response->addHeader("Content-length", to_string(notFoundStat.st_size));
+        }
         response->sendDataFunc = sendFile;
         return 0;
     }

@@ -40,9 +40,7 @@ Buffer *BufferPool::acquire()
     {
         Buffer *buf = m_pool.back(); // 从池中取出最后一个Buffer
         m_pool.pop_back();
-        // 重置Buffer状态：
-        buf->readPosIncrease(-buf->readableSize());           // 重置读位置
-        buf->extendRoom(m_bufferSize - buf->writeableSize()); // 确保写空间为标准大小
+        buf->reset();
         return buf;
     }
     return new Buffer(m_bufferSize); // 如果池为空，新建一个Buffer
@@ -54,9 +52,7 @@ void BufferPool::release(Buffer *buffer)
     if (buffer) // 检查指针有效性
     {
         lock_guard<mutex> lock(m_mutex); // 加锁保证线程安全
-        // 重置Buffer状态：
-        buffer->readPosIncrease(-buffer->readableSize());           // 重置读位置
-        buffer->extendRoom(m_bufferSize - buffer->writeableSize()); // 确保写空间为标准大小
+        buffer->reset();
         m_pool.push_back(buffer);                                   // 将Buffer放回池中
     }
 }

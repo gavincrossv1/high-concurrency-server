@@ -10,14 +10,20 @@ int main(int argc, char *argv[])
     signal(SIGPIPE, SIG_IGN); // 忽略管道破裂信号,否则sendfile会关停程序
 
 #if 1
-    if (argc < 4)
+    if (argc < 5)
     {
-        printf("./a.out port threadnum buffernum\n");
+        printf("./server port threadnum buffernum keepalive(0|1)\n");
         return -1;
     }
     int port = atoi(argv[1]);
     int threadnum = atoi(argv[2]);
     int buffernum = atoi(argv[3]);
+    bool keepAlive = atoi(argv[4]) != 0;
+    int keepAliveTimeout = argc > 5 ? atoi(argv[5]) : 60;
+    if (keepAliveTimeout <= 0)
+    {
+        keepAliveTimeout = 60;
+    }
     // 切换服务器的工作路径(必须在项目的根目录下运行)
     // 输出当前目录
     char cwd[1024];
@@ -48,7 +54,7 @@ int main(int argc, char *argv[])
         // 初始化 BufferPool 单例
         BufferPool::instance(10240, buffernum);
         // 启动服务器
-        TcpServer *server = new TcpServer(port, threadnum);
+        TcpServer *server = new TcpServer(port, threadnum, keepAlive, keepAliveTimeout);
         server->run();
 
         return 0;
