@@ -2,6 +2,8 @@
 #include "HttpRequest.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
 #include "Log.h"
 #include "BufferPool.h"
 
@@ -16,6 +18,8 @@ int TcpConnection::processRead(void *arg)
           conn->m_readBuf->data());
     if (count > 0)
     {
+        // int quickAck = 1;
+        // setsockopt(socket, IPPROTO_TCP, TCP_QUICKACK, &quickAck, sizeof quickAck);
         conn->m_lastActiveTime = chrono::steady_clock::now();
         // 接收到了 http 请求, 解析http请求
 #ifdef MSG_SEND_AUTO

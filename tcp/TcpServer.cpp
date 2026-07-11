@@ -3,6 +3,8 @@
 #include "TcpConnection.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <netinet/tcp.h>
+#include <unistd.h>
 #include "Log.h"
 
 int TcpServer::acceptConnection(void *arg)
@@ -10,6 +12,20 @@ int TcpServer::acceptConnection(void *arg)
     TcpServer *server = static_cast<TcpServer *>(arg);
     // 和客户端建立连接
     int cfd = accept(server->m_lfd, NULL, NULL);
+    if (cfd == -1)
+    {
+        perror("accept");
+        return -1;
+    }
+    // 响应头由 send 发送、文件体由 sendfile 发送。关闭 Nagle，避免长连接下
+    // 小响应头等待客户端延迟 ACK，形成约 40ms 的固定延迟。
+    int noDelay = 1;
+    if (setsockopt(cfd, IPPROTO_TCP, TCP_NODELAY, &noDelay, sizeof noDelay) == -1)
+    {
+        perror("setsockopt TCP_NODELAY");
+        close(cfd);
+        return -1;
+    }
     // 从线程池中取出一个子线程的反应堆实例, 去处理这个cfd
     EventLoop *evLoop = server->m_threadPool->takeWorkerEventLoop();
     // 将cfd放到 TcpConnection中处理
