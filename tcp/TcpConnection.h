@@ -6,8 +6,6 @@
 #include "HttpResponse.h"
 #include <chrono>
 
-// #define MSG_SEND_AUTO
-
 class TcpConnection
 {
 public:

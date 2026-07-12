@@ -18,14 +18,8 @@ int TcpConnection::processRead(void *arg)
           conn->m_readBuf->data());
     if (count > 0)
     {
-        // int quickAck = 1;
-        // setsockopt(socket, IPPROTO_TCP, TCP_QUICKACK, &quickAck, sizeof quickAck);
         conn->m_lastActiveTime = chrono::steady_clock::now();
         // 接收到了 http 请求, 解析http请求
-#ifdef MSG_SEND_AUTO
-        conn->m_channel->writeEventEnable(true);
-        conn->m_evLoop->addTask(conn->m_channel, ElemType::MODIFY);
-#endif
         // 一个读缓冲中可能包含多个完整请求，逐个处理直到数据不足或需要关闭。
         while (conn->m_readBuf->readableSize() > 0)
         {
@@ -38,11 +32,7 @@ int TcpConnection::processRead(void *arg)
             }
             if (result == HttpParseResult::Close)
             {
-#ifdef MSG_SEND_AUTO
-                conn->m_closeAfterWrite = true;
-#else
                 conn->m_evLoop->addTask(conn->m_channel, ElemType::DELETE);
-#endif
                 return 0;
             }
         }
@@ -69,7 +59,7 @@ int TcpConnection::processTimeout(void *arg)
     return 0;
 }
 
-// 只有在定义了MSG_SEND_AUTO后,这个函数才会被使用
+// 保留写事件回调，当前直接发送模式不会主动启用 EPOLLOUT。
 int TcpConnection::processWrite(void *arg)
 {
     Debug("开始发送数据了(基于写事件发送)....");

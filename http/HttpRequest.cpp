@@ -385,18 +385,14 @@ void HttpRequest::sendDir(string dirName, Buffer *sendBuf, int cfd)
         }
         // send(cfd, buf, strlen(buf), 0);
         sendBuf->appendString(buf);
-#ifndef MSG_SEND_AUTO
         sendBuf->sendData(cfd);
-#endif
         memset(buf, 0, sizeof(buf));
         free(namelist[i]);
     }
     sprintf(buf, "</table></body></html>");
     // send(cfd, buf, strlen(buf), 0);
     sendBuf->appendString(buf);
-#ifndef MSG_SEND_AUTO
     sendBuf->sendData(cfd);
-#endif
     free(namelist);
 }
 
@@ -414,9 +410,7 @@ void HttpRequest::sendFile(string fileName, Buffer *sendBuf, int cfd)
         {
             // send(cfd, buf, len, 0);
             sendBuf->appendString(buf, len);
-#ifndef MSG_SEND_AUTO
             sendBuf->sendData(cfd);
-#endif
         }
         else if (len == 0)
         {

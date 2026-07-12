@@ -45,9 +45,7 @@ void HttpResponse::prepareMsg(Buffer *sendBuf, int socket)
     }
     // 空行
     sendBuf->appendString("\r\n");
-#ifndef MSG_SEND_AUTO
     sendBuf->sendData(socket);
-#endif
 
     // 回复的数据
     sendDataFunc(m_fileName, sendBuf, socket);
